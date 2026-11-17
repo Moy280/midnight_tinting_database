@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Uviron PureMax Carbon | Midnight Window Tinting</title>
+  <meta name="description" content="Uviron PureMax Carbon window film from Midnight Window Tinting in Chicagoland. Specs and how to book.">
+  <meta name="theme-color" content="#05070d">
+  <link rel="icon" href="assets/logo-600.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<div class="utility">
+  <div class="wrap utility-inner">
+    <a href="booking.html" class="utility-book">Book a Service</a>
+    <a href="tel:+17086779815" class="utility-call">Call (708) 677-9815</a>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="wrap nav-wrap">
+    <a href="index.html" class="brand" aria-label="Midnight Window Tinting home">
+      <img src="assets/logo-600.png" alt="Midnight Window Tinting logo" width="52" height="52">
+      <span class="brand-text">Midnight<small>Window Tinting</small></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="nav" class="nav" aria-label="Main">
+      <div class="nav-dropdown">
+        <a href="index.html#services" class="nav-dd-toggle" aria-haspopup="true">Vehicle Tinting</a>
+        <div class="nav-dd-menu" role="menu">
+          <a href="uviron-puremax-carbon.html" role="menuitem">Carbon: Uviron PureMax</a>
+          <a href="geoshield-c2-ceramic.html" role="menuitem">Ceramic: GeoShield C2</a>
+        </div>
+      </div>
+      <a href="index.html#quote">Free Quote</a>
+      <a href="index.html#gallery">Gallery</a>
+      <a href="index.html#reviews">Reviews</a>
+      <a href="index.html#about">About</a>
+      <a href="booking.html" class="btn btn-small">Book Online</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="product-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="index.html#services">Vehicle Window Tinting</a> &rsaquo; Carbon</p>
+      <p class="eyebrow">Carbon</p>
+      <h1>Uviron PureMax Carbon</h1>
+      <p class="lead">A carbon film for heat and glare reduction, with a clean, understated look.</p>
+      <p class="price">Starting at <strong>$150</strong> Full Vehicle (No Front Windshield)</p>
+      <div class="cta-row">
+        <a href="booking.html" class="btn btn-primary">Book Today</a>
+        <a href="tel:+17086779815" class="btn btn-ghost">Call (708) 677-9815</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap product-about">
+      <p class="eyebrow">About This Film</p>
+      <h2>Uviron PureMax Carbon Offers:</h2>
+      <ul class="offers"><li>28% to 58% TSER</li><li>23% to 55% IR rejection</li><li>99% UV rejection</li><li>2-ply, 1.5 mil thickness</li><li>Non-metal</li><li>Lifetime warranty</li></ul>
+      <p class="spec-note">TSER is total solar energy rejected. Values come from each manufacturer's published data. Results vary with the vehicle's glass.</p>
+      <a href="booking.html" class="btn btn-primary">Book Today</a>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="eyebrow">Upgrade</p>
+        <h2>Want to Upgrade?</h2>
+        <p class="section-sub">Move up to our top-rated film for higher heat rejection.</p>
+      </header>
+      <a class="other-card" href="geoshield-c2-ceramic.html">
+        <span class="film-tag">Ceramic</span>
+        <h3>GeoShield C2 Ceramic</h3>
+        <p>Carbon-pigmented ceramic film with a neutral color, for strong heat rejection and a clear view.</p>
+        <span class="card-link">View film details &rarr;</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap copy">
+    <p>&copy; 2026 Midnight Window Tinting. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn = document.querySelector('.nav-toggle');
+    var nav = document.getElementById('nav');
+    btn.addEventListener('click', function () {
+      var open = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    nav.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A' && !e.target.classList.contains('nav-dd-toggle')) {
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+</script>
+</body>
+</html>

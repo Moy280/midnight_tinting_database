@@ -15,6 +15,47 @@ function json(body, status = 200) {
   });
 }
 
+
+// Sends a notification email through Resend. Skipped if RESEND_API_KEY is not set.
+async function notifyByEmail(env, row) {
+  if (!env.RESEND_API_KEY) return;
+  const to = env.NOTIFY_TO || 'info@midnight-tint.com';
+  const from = env.FROM_EMAIL || 'Midnight Bookings <bookings@midnight-tint.com>';
+  const lines = [
+    'New booking request',
+    '',
+    'Name: ' + row.name,
+    'Phone: ' + row.phone,
+    'Email: ' + row.email,
+    '',
+    'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
+    'Film: ' + row.film,
+    'Coverage: ' + row.coverage,
+    '',
+    'Preferred date: ' + row.preferred_date,
+    'Preferred time: ' + (row.preferred_time || 'Any time'),
+    '',
+    'Notes: ' + (row.notes || 'None'),
+  ];
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + env.RESEND_API_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [to],
+      reply_to: row.email,
+      subject: 'Booking request: ' + row.year + ' ' + row.make + ' ' + row.model + ' (' + row.film + ')',
+      text: lines.join('\n'),
+    }),
+  });
+  if (!res.ok) {
+    console.error('email notification failed', res.status, await res.text());
+  }
+}
+
 export async function onRequestPost({ request, env }) {
   let data;
   try {
@@ -68,6 +109,13 @@ export async function onRequestPost({ request, env }) {
   } catch (err) {
     console.error('booking insert failed', err);
     return json({ ok: false, error: 'We could not save your request. Please call us.' }, 500);
+  }
+
+  // Email is best-effort: the booking is already saved, so a mail failure must not fail the request.
+  try {
+    await notifyByEmail(env, row);
+  } catch (err) {
+    console.error('email notification error', err);
   }
 
   return json({ ok: true });

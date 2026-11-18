@@ -249,6 +249,55 @@
     dateEl.addEventListener('change', loadTimes);
   })();
 
+  // Live checks: flag a field red when its entry is wrong (same rules as the server)
+  (function () {
+    var form = document.getElementById('booking-form');
+    function digitsOf(v) { var d = v.replace(/\D/g, ''); return (d.length === 11 && d.charAt(0) === '1') ? d.slice(1) : d; }
+    var rules = {
+      name: function (v) {
+        if (!/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(v) || !/[A-Za-z].*[A-Za-z]/.test(v)) return 'Please enter your full name, using letters only.';
+      },
+      phone: function (v) {
+        var d = digitsOf(v);
+        if (d.length !== 10 || /^(\d)\1{9}$/.test(d)) return 'Please enter a valid 10-digit phone number.';
+      },
+      year: function (v) {
+        var y = Number(v), max = new Date().getFullYear() + 1;
+        if (!/^\d{4}$/.test(v) || y < 1980 || y > max) return 'Please enter a valid vehicle year.';
+      },
+      make: function (v) {
+        if (!/^[A-Za-z0-9][A-Za-z0-9 .&-]{1,39}$/.test(v) || !/[A-Za-z]{2}/.test(v)) return 'Please enter a valid vehicle make.';
+      },
+      model: function (v) {
+        if (!/^[A-Za-z0-9][A-Za-z0-9 .&+-]{0,39}$/.test(v)) return 'Please enter a valid vehicle model.';
+      }
+    };
+    function check(el) {
+      var rule = rules[el.name];
+      if (!rule || !el.value.trim()) { el.classList.remove('bad'); return ''; }
+      var msg = rule(el.value.trim()) || '';
+      el.classList.toggle('bad', !!msg);
+      el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      return msg;
+    }
+    Object.keys(rules).forEach(function (k) {
+      var el = form.querySelector('[name="' + k + '"]');
+      if (!el) return;
+      el.addEventListener('blur', function () { check(el); });
+      el.addEventListener('input', function () { if (el.classList.contains('bad')) check(el); });
+    });
+    window.checkBookingFields = function () {
+      var first = null, firstMsg = '';
+      Object.keys(rules).forEach(function (k) {
+        var el = form.querySelector('[name="' + k + '"]');
+        if (!el) return;
+        var msg = check(el);
+        if (msg && !first) { first = el; firstMsg = msg; }
+      });
+      return first ? { el: first, msg: firstMsg } : null;
+    };
+  })();
+
   // Booking request: validate, send to /api/booking, and show the result
   (function () {
     var form = document.getElementById('booking-form');
@@ -257,6 +306,12 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       form.classList.add('attempted');
+      var wrong = window.checkBookingFields();
+      if (wrong) {
+        status.textContent = wrong.msg;
+        wrong.el.focus();
+        return;
+      }
       var invalid = form.querySelector('input:invalid, select:invalid, textarea:invalid');
       if (invalid) {
         var label = '';

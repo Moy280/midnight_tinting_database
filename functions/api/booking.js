@@ -30,7 +30,7 @@ async function notifyByEmail(env, row) {
     '',
     'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
     'Film: ' + row.film,
-    'Coverage: ' + row.coverage,
+    'Package: ' + row.coverage,
     '',
     'Preferred date: ' + row.preferred_date,
     'Preferred time: ' + (row.preferred_time || 'Any time'),

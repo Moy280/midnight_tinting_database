@@ -19,6 +19,25 @@ function json(body, status = 200) {
   });
 }
 
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December'];
+
+// "7086779815" or "17086779815" -> "(708)-677-9815"
+function formatPhone(raw) {
+  const d = String(raw || '').replace(/\D/g, '');
+  const ten = d.length === 11 && d.startsWith('1') ? d.slice(1) : d;
+  if (ten.length !== 10) return raw;
+  return '(' + ten.slice(0, 3) + ')-' + ten.slice(3, 6) + '-' + ten.slice(6);
+}
+
+// "2026-12-02" -> "December 2, 2026"
+function formatDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return iso;
+  return MONTHS[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1];
+}
+
 async function notifyByEmail(env, row, startLabel) {
   if (!env.RESEND_API_KEY) return;
   const to = env.NOTIFY_TO || 'info@midnight-tint.com';
@@ -27,14 +46,14 @@ async function notifyByEmail(env, row, startLabel) {
     'New booking request',
     '',
     'Name: ' + row.name,
-    'Phone: ' + row.phone,
+    'Phone: ' + formatPhone(row.phone),
     'Email: ' + row.email,
     '',
     'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
     'Film: ' + row.film,
     'Package: ' + row.package,
     '',
-    'Date: ' + row.preferred_date,
+    'Date: ' + formatDate(row.preferred_date),
     'Start time: ' + startLabel + ' (3-hour appointment)',
     '',
     'Notes: ' + (row.notes || 'None'),
@@ -49,7 +68,7 @@ async function notifyByEmail(env, row, startLabel) {
       from,
       to: [to],
       reply_to: row.email,
-      subject: 'Booking: ' + row.preferred_date + ' ' + startLabel + ' - ' + row.year + ' ' + row.make + ' ' + row.model,
+      subject: 'Booking: ' + formatDate(row.preferred_date) + ' ' + startLabel + ' - ' + row.year + ' ' + row.make + ' ' + row.model,
       text: lines.join('\n'),
     }),
   });

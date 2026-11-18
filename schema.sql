@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   make TEXT NOT NULL,
   model TEXT NOT NULL,
   film TEXT NOT NULL,
-  coverage TEXT NOT NULL,
+  package TEXT NOT NULL,
   preferred_date TEXT NOT NULL,
   preferred_time TEXT,
   notes TEXT,

@@ -30,7 +30,7 @@ async function notifyByEmail(env, row) {
     '',
     'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
     'Film: ' + row.film,
-    'Package: ' + row.coverage,
+    'Package: ' + row.package,
     '',
     'Preferred date: ' + row.preferred_date,
     'Preferred time: ' + (row.preferred_time || 'Any time'),
@@ -77,13 +77,13 @@ export async function onRequestPost({ request, env }) {
     make: clean(data.make, MAX.make),
     model: clean(data.model, MAX.model),
     film: clean(data.film, 60),
-    coverage: clean(data.coverage, 100),
+    package: clean(data.package, 100),
     preferred_date: clean(data.date, 10),
     preferred_time: clean(data.time, 20),
     notes: clean(data.notes, MAX.notes),
   };
 
-  const required = ['name', 'phone', 'email', 'year', 'make', 'model', 'film', 'coverage', 'preferred_date'];
+  const required = ['name', 'phone', 'email', 'year', 'make', 'model', 'film', 'package', 'preferred_date'];
   for (const k of required) {
     if (!row[k]) return json({ ok: false, error: 'Please fill in all required fields.' }, 400);
   }
@@ -100,11 +100,11 @@ export async function onRequestPost({ request, env }) {
   try {
     await env.DB.prepare(
       `INSERT INTO bookings
-        (name, phone, email, year, make, model, film, coverage, preferred_date, preferred_time, notes, consent, status)
+        (name, phone, email, year, make, model, film, package, preferred_date, preferred_time, notes, consent, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 'new')`
     ).bind(
       row.name, row.phone, row.email, row.year, row.make, row.model,
-      row.film, row.coverage, row.preferred_date, row.preferred_time, row.notes
+      row.film, row.package, row.preferred_date, row.preferred_time, row.notes
     ).run();
   } catch (err) {
     console.error('booking insert failed', err);

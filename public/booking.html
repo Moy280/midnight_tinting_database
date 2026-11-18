@@ -259,7 +259,17 @@
       form.classList.add('attempted');
       var invalid = form.querySelector(':invalid');
       if (invalid) {
-        status.textContent = 'Please fill in the required fields.';
+        var label = '';
+        var lf = invalid.closest('label.field');
+        if (lf) { label = lf.querySelector('span').textContent; }
+        else {
+          var fs = invalid.closest('fieldset');
+          if (fs) { label = fs.querySelector('legend').textContent; }
+        }
+        label = label.replace(/\*/g, '').replace(/^\s*\d+\.\s*/, '').trim();
+        status.textContent = label
+          ? 'Please complete: ' + label + '.'
+          : 'Please fill in the required fields.';
         invalid.focus();
         return;
       }

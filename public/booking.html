@@ -69,8 +69,12 @@
           <legend>1. Contact Information</legend>
           <div class="form-grid">
             <label class="field">
-              <span>Full name <abbr title="required">*</abbr></span>
-              <input type="text" name="name" autocomplete="name" required>
+              <span>First name <abbr title="required">*</abbr></span>
+              <input type="text" name="first_name" autocomplete="given-name" required>
+            </label>
+            <label class="field">
+              <span>Last name <abbr title="required">*</abbr></span>
+              <input type="text" name="last_name" autocomplete="family-name" required>
             </label>
             <label class="field">
               <span>Phone <abbr title="required">*</abbr></span>
@@ -84,7 +88,7 @@
         </fieldset>
 
         <fieldset>
-          <legend>2. Your vehicle</legend>
+          <legend>2. Vehicle Information</legend>
           <div class="form-grid">
             <label class="field">
               <span>Year <abbr title="required">*</abbr></span>
@@ -120,7 +124,7 @@
         </fieldset>
 
         <fieldset>
-          <legend>5. Preferred timing</legend>
+          <legend>5. Choose Your Appointment Time</legend>
           <div class="form-grid">
             <label class="field">
               <span>Select date <abbr title="required">*</abbr></span>
@@ -141,7 +145,7 @@
         </fieldset>
 
         <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
-        <label class="consent"><input type="checkbox" name="consent" required> <span>I agree to be contacted about my booking request.</span></label>
+        <label class="consent"><input type="checkbox" name="consent" required><span>I agree to be contacted about my booking request.</span></label>
         <p class="form-status" role="status" aria-live="polite"></p>
         <button type="submit" class="btn btn-primary btn-block">Send Booking Request</button>
         <p class="form-note">This sends your request by email. We'll reply to confirm your time. We don't take payment on this form.</p>
@@ -254,8 +258,11 @@
     var form = document.getElementById('booking-form');
     function digitsOf(v) { var d = v.replace(/\D/g, ''); return (d.length === 11 && d.charAt(0) === '1') ? d.slice(1) : d; }
     var rules = {
-      name: function (v) {
-        if (!/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(v) || !/[A-Za-z].*[A-Za-z]/.test(v)) return 'Please enter your full name, using letters only.';
+      first_name: function (v) {
+        if (!/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(v) || !/[A-Za-z].*[A-Za-z]/.test(v)) return 'Please enter your first name, using letters only.';
+      },
+      last_name: function (v) {
+        if (!/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(v) || !/[A-Za-z].*[A-Za-z]/.test(v)) return 'Please enter your last name, using letters only.';
       },
       phone: function (v) {
         var d = digitsOf(v);
@@ -331,6 +338,9 @@
       var d = new FormData(form);
       var payload = {};
       d.forEach(function (v, k) { payload[k] = v; });
+      payload.name = (payload.first_name || '').trim() + ' ' + (payload.last_name || '').trim();
+      delete payload.first_name;
+      delete payload.last_name;
       payload.consent = form.querySelector('input[name="consent"]').checked;
       submit.disabled = true;
       status.textContent = 'Sending your request...';

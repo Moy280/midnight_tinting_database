@@ -28,7 +28,7 @@ function formatPhone(raw) {
   const d = String(raw || '').replace(/\D/g, '');
   const ten = d.length === 11 && d.startsWith('1') ? d.slice(1) : d;
   if (ten.length !== 10) return raw;
-  return '(' + ten.slice(0, 3) + ')-' + ten.slice(3, 6) + '-' + ten.slice(6);
+  return '(' + ten.slice(0, 3) + ') ' + ten.slice(3, 6) + '-' + ten.slice(6);
 }
 
 // "2026-12-02" -> "December 2, 2026"

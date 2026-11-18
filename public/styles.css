@@ -1289,3 +1289,16 @@ p { margin: 0 0 1em; }
 /* Wrong entries turn red */
 .booking-form input.bad { border-color: #ff7b7b; box-shadow: 0 0 0 2px rgba(255, 123, 123, 0.25); }
 .booking-form input.bad:focus { outline-color: #ff7b7b; }
+
+/* ===== Mobile service ===== */
+.mobile { background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.why-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+}
+.why-card h3 { font-size: 1.5rem; color: var(--blue-hot); }
+.why-card p { color: var(--muted); margin: 0; }
+@media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }

@@ -81,6 +81,36 @@ async function createCalendarEvent(env, token, row, start, end) {
   return res.json();
 }
 
+
+const FILMS = ['Uviron PureMax Carbon', 'GeoShield C2 Ceramic'];
+const PACKAGES = ['Full Vehicle (No Front Windshield)', 'Front only', 'Custom'];
+
+// Returns an error message for the first bad field, or null if everything looks valid.
+export function validateBooking(row) {
+  const thisYear = new Date().getUTCFullYear();
+  const digits = row.phone.replace(/\D/g, '');
+  const phoneDigits = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits;
+
+  if (!/^[A-Za-z][A-Za-z .'-]{1,99}$/.test(row.name) || !/[A-Za-z].*[A-Za-z]/.test(row.name)) {
+    return 'Please enter your full name, using letters only.';
+  }
+  if (phoneDigits.length !== 10 || /^(\d)\1{9}$/.test(phoneDigits)) {
+    return 'Please enter a valid 10-digit phone number.';
+  }
+  if (!/^\d{4}$/.test(row.year) || Number(row.year) < 1980 || Number(row.year) > thisYear + 1) {
+    return 'Please enter a valid vehicle year.';
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9 .&-]{1,39}$/.test(row.make) || !/[A-Za-z]{2}/.test(row.make)) {
+    return 'Please enter a valid vehicle make.';
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9 .&+-]{0,39}$/.test(row.model)) {
+    return 'Please enter a valid vehicle model.';
+  }
+  if (!FILMS.includes(row.film)) return 'Please choose a film.';
+  if (!PACKAGES.includes(row.package)) return 'Please choose a package.';
+  return null;
+}
+
 export async function onRequestPost({ request, env }) {
   let data;
   try {
@@ -115,6 +145,8 @@ export async function onRequestPost({ request, env }) {
   if (data.consent !== true && data.consent !== 'on') {
     return json({ ok: false, error: 'Please agree to be contacted about your request.' }, 400);
   }
+  const problem = validateBooking(row);
+  if (problem) return json({ ok: false, error: problem }, 400);
   if (isSunday(row.preferred_date)) return json({ ok: false, error: 'We are closed on Sundays. Please choose another day.' }, 400);
 
   const t = parseTime(row.preferred_time);

@@ -257,7 +257,7 @@
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       form.classList.add('attempted');
-      var invalid = form.querySelector(':invalid');
+      var invalid = form.querySelector('input:invalid, select:invalid, textarea:invalid');
       if (invalid) {
         var label = '';
         var lf = invalid.closest('label.field');

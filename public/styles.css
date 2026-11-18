@@ -1280,3 +1280,7 @@ p { margin: 0 0 1em; }
   margin-top: 8px;
 }
 .consent input { margin-top: 4px; width: 18px; height: 18px; accent-color: var(--blue-hot); }
+
+/* ===== Available times ===== */
+.time-note { color: #ffd166; font-size: 0.9rem; margin-top: 4px; }
+.booking-form select:disabled { opacity: 0.6; cursor: not-allowed; }

@@ -1,5 +1,9 @@
-// Cloudflare Pages Function: receives a booking request and stores it in D1.
-// Bound to the database named DB (see wrangler.toml).
+// Pages Function: receives a booking request, checks the calendar, creates the
+// calendar event, saves the booking to D1, and emails the details.
+import {
+  APPOINTMENT_MINUTES, TZ, getAccessToken, getBusy, isSunday, overlaps,
+  parseTime, zonedToDate,
+} from '../lib/google.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX = { name: 100, phone: 30, email: 120, year: 4, make: 60, model: 60, notes: 1000 };
@@ -15,9 +19,7 @@ function json(body, status = 200) {
   });
 }
 
-
-// Sends a notification email through Resend. Skipped if RESEND_API_KEY is not set.
-async function notifyByEmail(env, row) {
+async function notifyByEmail(env, row, startLabel) {
   if (!env.RESEND_API_KEY) return;
   const to = env.NOTIFY_TO || 'info@midnight-tint.com';
   const from = env.FROM_EMAIL || 'Midnight Bookings <bookings@midnight-tint.com>';
@@ -32,8 +34,8 @@ async function notifyByEmail(env, row) {
     'Film: ' + row.film,
     'Package: ' + row.package,
     '',
-    'Preferred date: ' + row.preferred_date,
-    'Preferred time: ' + (row.preferred_time || 'Any time'),
+    'Date: ' + row.preferred_date,
+    'Start time: ' + startLabel + ' (3-hour appointment)',
     '',
     'Notes: ' + (row.notes || 'None'),
   ];
@@ -47,13 +49,36 @@ async function notifyByEmail(env, row) {
       from,
       to: [to],
       reply_to: row.email,
-      subject: 'Booking request: ' + row.year + ' ' + row.make + ' ' + row.model + ' (' + row.film + ')',
+      subject: 'Booking: ' + row.preferred_date + ' ' + startLabel + ' - ' + row.year + ' ' + row.make + ' ' + row.model,
       text: lines.join('\n'),
     }),
   });
-  if (!res.ok) {
-    console.error('email notification failed', res.status, await res.text());
-  }
+  if (!res.ok) console.error('email notification failed', res.status, await res.text());
+}
+
+async function createCalendarEvent(env, token, row, start, end) {
+  const res = await fetch(
+    'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(env.GOOGLE_CALENDAR_ID) + '/events',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary: 'Tint: ' + row.name + ' (' + row.film + ')',
+        description: [
+          'Phone: ' + row.phone,
+          'Email: ' + row.email,
+          'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
+          'Film: ' + row.film,
+          'Package: ' + row.package,
+          'Notes: ' + (row.notes || 'None'),
+        ].join('\n'),
+        start: { dateTime: start.toISOString(), timeZone: TZ },
+        end: { dateTime: end.toISOString(), timeZone: TZ },
+      }),
+    }
+  );
+  if (!res.ok) throw new Error('Calendar event failed: ' + res.status);
+  return res.json();
 }
 
 export async function onRequestPost({ request, env }) {
@@ -64,10 +89,8 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: false, error: 'Invalid request.' }, 400);
   }
 
-  // Honeypot: real visitors leave this field empty. Bots often fill it in.
-  if (clean(data.website, 100) !== '') {
-    return json({ ok: true });
-  }
+  // Honeypot: real visitors leave this field empty.
+  if (clean(data.website, 100) !== '') return json({ ok: true });
 
   const row = {
     name: clean(data.name, MAX.name),
@@ -83,18 +106,38 @@ export async function onRequestPost({ request, env }) {
     notes: clean(data.notes, MAX.notes),
   };
 
-  const required = ['name', 'phone', 'email', 'year', 'make', 'model', 'film', 'package', 'preferred_date'];
+  const required = ['name', 'phone', 'email', 'year', 'make', 'model', 'film', 'package', 'preferred_date', 'preferred_time'];
   for (const k of required) {
     if (!row[k]) return json({ ok: false, error: 'Please fill in all required fields.' }, 400);
   }
-  if (!EMAIL_RE.test(row.email)) {
-    return json({ ok: false, error: 'Please enter a valid email address.' }, 400);
-  }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.preferred_date)) {
-    return json({ ok: false, error: 'Please choose a valid date.' }, 400);
-  }
+  if (!EMAIL_RE.test(row.email)) return json({ ok: false, error: 'Please enter a valid email address.' }, 400);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(row.preferred_date)) return json({ ok: false, error: 'Please choose a valid date.' }, 400);
   if (data.consent !== true && data.consent !== 'on') {
     return json({ ok: false, error: 'Please agree to be contacted about your request.' }, 400);
+  }
+  if (isSunday(row.preferred_date)) return json({ ok: false, error: 'We are closed on Sundays. Please choose another day.' }, 400);
+
+  const t = parseTime(row.preferred_time);
+  if (!t || t.hour < 8 || t.hour > 14 || (t.hour === 14 && t.minute > 0)) {
+    return json({ ok: false, error: 'Please choose a start time between 8:00 AM and 2:00 PM.' }, 400);
+  }
+
+  const start = zonedToDate(row.preferred_date, t.hour, t.minute);
+  const end = new Date(start.getTime() + APPOINTMENT_MINUTES * 60000);
+  if (start.getTime() < Date.now()) {
+    return json({ ok: false, error: 'That time has already passed. Please choose another time.' }, 400);
+  }
+
+  try {
+    const token = await getAccessToken(env);
+    const busy = await getBusy(env, token, start, end);
+    if (overlaps(start, end, busy)) {
+      return json({ ok: false, error: 'Sorry, that time was just booked. Please choose another time.' }, 409);
+    }
+    await createCalendarEvent(env, token, row, start, end);
+  } catch (err) {
+    console.error('calendar step failed', err);
+    return json({ ok: false, error: 'We could not reserve that time. Please call us.' }, 500);
   }
 
   try {
@@ -111,9 +154,8 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: false, error: 'We could not save your request. Please call us.' }, 500);
   }
 
-  // Email is best-effort: the booking is already saved, so a mail failure must not fail the request.
   try {
-    await notifyByEmail(env, row);
+    await notifyByEmail(env, row, row.preferred_time);
   } catch (err) {
     console.error('email notification error', err);
   }

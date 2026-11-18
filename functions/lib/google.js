@@ -4,50 +4,16 @@
 export const TZ = 'America/Chicago';
 export const APPOINTMENT_MINUTES = 180;
 
-const enc = new TextEncoder();
-
-function b64urlFromBytes(bytes) {
-  let bin = '';
-  for (const b of bytes) bin += String.fromCharCode(b);
-  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-function b64url(str) {
-  return b64urlFromBytes(enc.encode(str));
-}
-
-function pemToDer(pem) {
-  const body = pem.replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
-  const bin = atob(body);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out.buffer;
-}
-
+// Gets an access token using the calendar owner's refresh token (no key file needed).
 export async function getAccessToken(env) {
-  const sa = JSON.parse(env.GOOGLE_SERVICE_ACCOUNT);
-  const now = Math.floor(Date.now() / 1000);
-  const header = b64url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const claims = b64url(JSON.stringify({
-    iss: sa.client_email,
-    scope: 'https://www.googleapis.com/auth/calendar',
-    aud: 'https://oauth2.googleapis.com/token',
-    iat: now,
-    exp: now + 3600,
-  }));
-  const data = header + '.' + claims;
-  const key = await crypto.subtle.importKey(
-    'pkcs8', pemToDer(sa.private_key),
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key, enc.encode(data));
-  const assertion = data + '.' + b64urlFromBytes(new Uint8Array(sig));
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      refresh_token: env.GOOGLE_REFRESH_TOKEN,
+      grant_type: 'refresh_token',
     }),
   });
   if (!res.ok) throw new Error('Google token request failed: ' + res.status);

@@ -6,7 +6,8 @@
   <title>Book appointment | Midnight Tinting Chicagoland</title>
   <meta name="description" content="Book a window tint install with Midnight Tinting in Chicagoland. Choose your vehicle, film, and preferred time, and we'll confirm your appointment.">
   <meta name="theme-color" content="#05070d">
-  <link rel="icon" href="assets/logo-600.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -149,7 +150,7 @@
         <label class="consent"><input type="checkbox" name="consent" required><span>I agree to be contacted about my booking request.</span></label>
         <p class="form-status" role="status" aria-live="polite"></p>
         <button type="submit" class="btn btn-primary btn-block">Send Booking Request</button>
-        <p class="form-note">This sends your request by email. We'll reply to confirm your time. We don't take payment on this form.</p>
+        <p class="form-note"><strong>What happens next:</strong> we'll reply within one business day to confirm your time. We don't take payment on this form.</p>
       </form>
 
       <aside class="booking-aside" aria-label="Booking details">
@@ -353,7 +354,7 @@
         form.reset();
         form.classList.remove('attempted');
         if (window.gtag) gtag('event', 'booking_request_submitted', { package: payload.package || '', film: payload.film || '' });
-        status.textContent = 'Thanks! We received your request and will reply to confirm your time.';
+        status.textContent = 'Thanks! We received your request. What happens next: we\u2019ll reply within one business day to confirm your time.';
       } catch (err) {
         status.textContent = (err && err.message && err.message !== 'Request failed')
           ? err.message

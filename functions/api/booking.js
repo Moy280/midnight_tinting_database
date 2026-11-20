@@ -75,6 +75,41 @@ async function notifyByEmail(env, row, startLabel) {
   if (!res.ok) console.error('email notification failed', res.status, await res.text());
 }
 
+
+// Sends the customer a receipt of their request. It does not confirm the appointment.
+async function confirmToCustomer(env, row, startLabel) {
+  if (!env.RESEND_API_KEY) return;
+  const from = env.FROM_EMAIL || 'Midnight Tinting <bookings@midnight-tint.com>';
+  const lines = [
+    'Hi ' + row.name.split(' ')[0] + ',',
+    '',
+    'Thanks for your request with Midnight Tinting. We received it and will reply to confirm your appointment time.',
+    '',
+    'Requested details:',
+    'Date: ' + formatDate(row.preferred_date),
+    'Start time: ' + startLabel + ' (about 3 hours)',
+    'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
+    'Film: ' + row.film,
+    'Package: ' + row.package,
+    '',
+    'Your request is not confirmed until we reply. Questions? Call (708) 677-9815 or reply to this email.',
+    '',
+    'Midnight Tinting',
+  ];
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from,
+      to: [row.email],
+      reply_to: env.NOTIFY_TO || 'info@midnight-tint.com',
+      subject: 'We received your booking request',
+      text: lines.join('\n'),
+    }),
+  });
+  if (!res.ok) console.error('customer receipt failed', res.status, await res.text());
+}
+
 async function createCalendarEvent(env, token, row, start, end) {
   const res = await fetch(
     'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(env.GOOGLE_CALENDAR_ID) + '/events',
@@ -209,6 +244,11 @@ export async function onRequestPost({ request, env }) {
     await notifyByEmail(env, row, row.preferred_time);
   } catch (err) {
     console.error('email notification error', err);
+  }
+  try {
+    await confirmToCustomer(env, row, row.preferred_time);
+  } catch (err) {
+    console.error('customer receipt error', err);
   }
 
   return json({ ok: true });

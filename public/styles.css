@@ -1316,11 +1316,4 @@ p { margin: 0 0 1em; }
 .qr-box { width: 200px; height: 200px; background: #fff; border-radius: 14px; padding: 10px; box-shadow: 0 0 0 4px rgba(95, 176, 255, 0.5), var(--glow); margin-bottom: 14px; }
 .qr-box .qr-svg { width: 100%; height: 100%; display: block; }
 
-/* ===== Privacy policy ===== */
-.privacy-date { color: var(--muted); font-size: 0.9rem; margin: 0; }
-.privacy-copy { max-width: 760px; }
-.privacy-copy h2 { font-size: 1.6rem; margin-top: 1.6em; }
-.privacy-copy p, .privacy-copy li { color: var(--muted); }
-.privacy-copy ul { padding-left: 1.2em; }
-.privacy-copy a, .consent a { color: var(--blue-hot); }
 .copy p a { color: var(--muted); }

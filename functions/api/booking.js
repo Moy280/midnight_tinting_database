@@ -92,8 +92,7 @@ async function confirmToCustomer(env, row, startLabel) {
     'Film: ' + row.film,
     'Package: ' + row.package,
     '',
-    'What happens next: we\'ll reply within one business day to confirm your time. Your request is not confirmed until we reply.',
-    'Questions? Call (708) 677-9815 or reply to this email.',
+    'Your request is not confirmed until we reply. Questions? Call (708) 677-9815 or reply to this email.',
     '',
     'Midnight Tinting',
   ];

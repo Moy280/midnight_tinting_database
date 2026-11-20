@@ -997,6 +997,8 @@ p { margin: 0 0 1em; }
 .aside-card p a { color: var(--text); text-decoration: none; font-weight: 600; }
 .aside-card p a:hover { color: var(--blue-hot); }
 .aside-meta { font-size: 0.9rem; }
+.aside-card .contact-line { display: flex; align-items: center; gap: 10px; margin-bottom: 0.4em; }
+.aside-card .contact-line svg { color: var(--blue-hot); flex: none; }
 .todo { color: #ffd166 !important; }
 
 @media (max-width: 960px) {

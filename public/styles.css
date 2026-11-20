@@ -1311,3 +1311,7 @@ p { margin: 0 0 1em; }
 .area-list li { color: var(--text); }
 .area-note { text-align: center; color: var(--muted); margin: 24px 0 0; }
 @media (max-width: 640px) { .area-grid { grid-template-columns: 1fr; } .area-list { grid-template-columns: 1fr 1fr; } }
+
+/* ===== Real QR code on booking card ===== */
+.qr-box { width: 200px; height: 200px; background: #fff; border-radius: 14px; padding: 10px; box-shadow: 0 0 0 4px rgba(95, 176, 255, 0.5), var(--glow); margin-bottom: 14px; }
+.qr-box .qr-svg { width: 100%; height: 100%; display: block; }

@@ -173,10 +173,31 @@
       '<label for="st">Status</label><select id="st">' + statusOptions + '</select>' +
       '<label for="nt">Internal notes</label><textarea id="nt" placeholder="Called, left voicemail, quote sent…">' + esc(b.internal_notes || '') + '</textarea>' +
       '<div class="btns"><button class="btn primary wide" id="saveBtn">Save</button></div>' +
+      (b.status === 'done'
+        ? '<div class="btns"><button class="btn wide" id="revBtn">' + (b.review_sent_at ? 'Send review request again' : 'Send review request now') + '</button></div>'
+        : '') +
       '<div class="btns"><button class="btn wide" id="delBtn" style="color:#ff8a80;border-color:#6b2f2f">Delete booking</button></div>' +
       '<div id="detailMsg">' + (msg ? '<div class="msg ' + msg.type + '">' + esc(msg.text) + '</div>' : '') + '</div>';
     $('#saveBtn').addEventListener('click', saveDetail);
+    if ($('#revBtn')) $('#revBtn').addEventListener('click', sendReviewNow);
     $('#delBtn').addEventListener('click', deleteBooking);
+  }
+
+  async function sendReviewNow() {
+    const b = selectedBooking();
+    if (!b) return;
+    if (b.review_sent_at && !window.confirm('A review request was already sent to ' + b.name + '. Send it again?')) return;
+    const btn = $('#revBtn');
+    btn.disabled = true;
+    try {
+      await api('/api/admin/review', { method: 'POST', body: JSON.stringify({ id: b.id }) });
+      await loadList();
+      renderDetail({ type: 'ok', text: 'Review request sent to the customer.' });
+    } catch (err) {
+      btn.disabled = false;
+      const el = $('#detailMsg');
+      if (el) el.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>';
+    }
   }
 
   async function deleteBooking() {

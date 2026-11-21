@@ -3,73 +3,7 @@
 //   2. review requests for appointments marked Done about three days ago
 // Protected by a shared secret, not by Access.
 import { json, chicagoDate } from '../../lib/admin.js';
-
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-  'August', 'September', 'October', 'November', 'December'];
-
-// "2026-12-02" -> "December 2, 2026"
-function formatDate(iso) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
-  if (!m) return iso;
-  return MONTHS[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1];
-}
-
-async function sendEmail(env, row, subject, lines) {
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: env.FROM_EMAIL || 'Midnight Tinting <bookings@midnight-tint.com>',
-      to: [row.email],
-      reply_to: env.NOTIFY_TO || 'info@midnight-tint.com',
-      subject,
-      text: lines.join('\n'),
-    }),
-  });
-  if (!res.ok) console.error('email failed', row.id, res.status, await res.text());
-  return res.ok;
-}
-
-function sendReminder(env, row) {
-  return sendEmail(env, row,
-    'Reminder: your tint appointment is tomorrow at ' + row.preferred_time,
-    [
-      'Hi ' + row.name.split(' ')[0] + ',',
-      '',
-      'A quick reminder that your window tint appointment with Midnight Tinting is tomorrow:',
-      '',
-      'Date: ' + formatDate(row.preferred_date),
-      'Start time: ' + row.preferred_time + ' (about 3 hours)',
-      'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
-      'Film: ' + row.film,
-      'Package: ' + row.package,
-      '',
-      'We come to you. Please have the vehicle parked where we can work, with the windows clean and rolled up.',
-      '',
-      'Need to change the time? Call (708) 677-9815 or reply to this email.',
-      '',
-      'Midnight Tinting',
-    ]);
-}
-
-function sendReviewRequest(env, row) {
-  return sendEmail(env, row,
-    'Thanks for choosing Midnight Tinting',
-    [
-      'Hi ' + row.name.split(' ')[0] + ',',
-      '',
-      'Thanks for letting us tint your ' + row.year + ' ' + row.make + ' ' + row.model + '. We hope you love how it turned out.',
-      '',
-      'If you have a minute, a short Google review helps other Chicagoland drivers find us:',
-      env.GOOGLE_REVIEW_URL,
-      '',
-      'If anything is not right, reply to this email or call (708) 677-9815 first, and we will make it right.',
-      '',
-      'Thank you,',
-      'Moises Hernandez',
-      'Midnight Tinting',
-    ]);
-}
+import { sendReminder, sendReviewRequest } from '../../lib/emails.js';
 
 export async function onRequestPost({ request, env }) {
   const auth = request.headers.get('Authorization') || '';

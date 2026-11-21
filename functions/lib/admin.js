@@ -22,7 +22,14 @@ export function clean(v, max) {
 // Returns a Response to send back if the request is not from an allowed admin, else null.
 export function requireAdmin(request, env) {
   const email = (request.headers.get('Cf-Access-Authenticated-User-Email') || '').trim().toLowerCase();
-  if (!email) return json({ ok: false, error: 'Not signed in.' }, 403);
+  if (!email) {
+    // TEMPORARY diagnostic: names (never values) of Access-related headers that arrived.
+    const seen = [];
+    for (const [name] of request.headers) {
+      if (name.toLowerCase().startsWith('cf-access') || name.toLowerCase() === 'cookie') seen.push(name.toLowerCase());
+    }
+    return json({ ok: false, error: 'Not signed in.', debug_headers: seen }, 403);
+  }
   const allowed = String(env.ADMIN_EMAILS || '')
     .split(',')
     .map((s) => s.trim().toLowerCase())

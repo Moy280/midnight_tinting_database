@@ -55,7 +55,7 @@ async function sendPhoneReceipt(env, row, startLabel) {
 }
 const COLUMNS = `id, created_at, name, phone, email, year, make, model, film, package,
   preferred_date, preferred_time, notes, consent, status, source, internal_notes, updated_at,
-  follow_up_date, reminder_sent_at`;
+  follow_up_date, reminder_sent_at, review_sent_at`;
 
 export async function onRequestGet({ request, env }) {
   const denied = await requireAdmin(request, env);

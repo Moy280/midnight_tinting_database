@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   internal_notes TEXT,
   updated_at TEXT,
   follow_up_date TEXT,
-  reminder_sent_at TEXT
+  reminder_sent_at TEXT,
+  review_sent_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status, created_at);

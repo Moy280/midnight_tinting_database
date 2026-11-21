@@ -163,6 +163,11 @@
             ? 'Reminder emailed ' + esc(fmtReceived(b.reminder_sent_at))
             : 'Reminder email goes out the day before the appointment') + '</div>'
         : '') +
+      (b.status === 'done'
+        ? '<div class="meta">' + (b.review_sent_at
+            ? 'Review request sent ' + esc(fmtReceived(b.review_sent_at))
+            : 'Review request goes out about 3 days after the appointment') + '</div>'
+        : '') +
       '<label for="fu">Follow up by</label><input id="fu" type="date" value="' + esc(b.follow_up_date || '') + '">' +
       '<div class="hint">Shows under "Follow up" on the list until it is done or lost. Clear it to remove.</div>' +
       '<label for="st">Status</label><select id="st">' + statusOptions + '</select>' +

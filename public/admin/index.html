@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Bookings | Midnight Tinting admin</title>
+<style>
+  :root { --bg:#0b0f1a; --panel:#111827; --line:#1f2a3d; --text:#e8eef9; --muted:#8b9ab5; --blue:#5fb0ff; --blue-2:#2f8cff; --bad:#ff8a80; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size:15px; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px 20px; border-bottom:1px solid var(--line); background:#0d1322; position:sticky; top:0; z-index:2; }
+  header h1 { margin:0; font-size:19px; letter-spacing:.02em; }
+  header h1 span { color:var(--blue); }
+  .wrap { display:grid; grid-template-columns: minmax(0,1fr) 380px; min-height: calc(100vh - 62px); }
+  main { padding:16px 20px; min-width:0; }
+  .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .chip { background:transparent; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:6px 12px; font:inherit; cursor:pointer; }
+  .chip.on { color:var(--text); border-color:var(--blue-2); background:rgba(47,140,255,.14); }
+  .chip b { color:var(--blue); margin-left:4px; }
+  input, select, textarea { width:100%; background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font:inherit; }
+  textarea { min-height:70px; resize:vertical; }
+  .search { max-width:300px; }
+  .btn { padding:9px 14px; border-radius:8px; border:1px solid var(--line); background:var(--panel); color:var(--text); font:inherit; font-weight:600; cursor:pointer; text-decoration:none; text-align:center; }
+  .btn.primary { background:var(--blue-2); border-color:var(--blue-2); color:#fff; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); background:#0e1628; }
+  tr.row { cursor:pointer; }
+  tr.row:hover td, tr.row.sel td { background:#16263f; }
+  .name { font-weight:600; }
+  .sub { color:var(--muted); font-size:13px; }
+  .pill { display:inline-block; font-size:12px; font-weight:600; padding:3px 9px; border-radius:999px; border:1px solid; white-space:nowrap; }
+  .s-new { color:#ffd166; border-color:#6b5a1f; }
+  .s-contacted { color:#7cc4ff; border-color:#2a5b84; }
+  .s-quoted { color:#c9a2ff; border-color:#5b3d86; }
+  .s-booked { color:#6fe3a6; border-color:#2b6a4a; }
+  .s-done { color:var(--muted); border-color:#3a4760; }
+  .s-lost { color:var(--bad); border-color:#6b2f2f; }
+  .late { color:var(--bad); font-weight:600; }
+  .empty { padding:24px; text-align:center; color:var(--muted); background:var(--panel); border:1px dashed var(--line); border-radius:10px; }
+  .msg { margin:10px 0; padding:10px 12px; border-radius:8px; font-size:14px; }
+  .msg.err { background:rgba(255,138,128,.1); border:1px solid #6b2f2f; color:#ffd0cb; }
+  .msg.ok { background:rgba(111,227,166,.1); border:1px solid #2b6a4a; color:#c9f5dc; }
+  aside { border-left:1px solid var(--line); background:#0d1322; padding:18px; overflow:auto; }
+  aside h2 { margin:0 0 4px; font-size:19px; }
+  .meta { color:var(--muted); font-size:13px; margin-bottom:12px; }
+  dl { display:grid; grid-template-columns: 110px 1fr; gap:7px 12px; margin:0 0 14px; font-size:14px; }
+  dt { color:var(--muted); }
+  dd { margin:0; overflow-wrap:anywhere; }
+  .section { font-size:12px; color:var(--blue); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin:16px 0 6px; }
+  label { display:block; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:10px 0 5px; font-weight:700; }
+  .req { color:var(--bad); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .full { grid-column: 1 / -1; }
+  .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+  .btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
+  .btns .wide { grid-column: 1 / -1; }
+  .links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px; }
+  .invalid { border-color: var(--bad) !important; }
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    aside { border-left:none; border-top:1px solid var(--line); }
+    th.hide-m, td.hide-m { display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Midnight <span>Tinting</span> · Bookings</h1>
+  <button class="btn primary" id="newBtn">+ New booking</button>
+</header>
+
+<div class="wrap">
+  <main>
+    <div class="toolbar">
+      <div id="chips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+    </div>
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="Search name, phone, email, vehicle">
+    </div>
+    <div id="listMsg"></div>
+    <div id="list"></div>
+  </main>
+
+  <aside id="panel">
+    <div class="empty">Select a booking to see details, or add a new one.</div>
+  </aside>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>

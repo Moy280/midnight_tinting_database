@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS bookings (
   preferred_time TEXT,
   notes TEXT,
   consent INTEGER NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'new'
+  status TEXT NOT NULL DEFAULT 'new',
+  source TEXT NOT NULL DEFAULT 'Website',
+  internal_notes TEXT,
+  updated_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status, created_at);

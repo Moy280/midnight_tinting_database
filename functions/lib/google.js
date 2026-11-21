@@ -92,3 +92,22 @@ export const SLOT_STARTS = (() => {
   }
   return out;
 })();
+
+// Creates a calendar event for a booking made by hand (for example, from a phone call).
+export async function createEvent(env, token, { summary, description, start, end }) {
+  const res = await fetch(
+    'https://www.googleapis.com/calendar/v3/calendars/' + encodeURIComponent(env.GOOGLE_CALENDAR_ID) + '/events',
+    {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        summary,
+        description,
+        start: { dateTime: start.toISOString(), timeZone: TZ },
+        end: { dateTime: end.toISOString(), timeZone: TZ },
+      }),
+    }
+  );
+  if (!res.ok) throw new Error('Calendar event failed: ' + res.status);
+  return res.json();
+}

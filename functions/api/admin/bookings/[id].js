@@ -2,7 +2,7 @@
 import { json, clean, requireAdmin, STATUSES } from '../../../lib/admin.js';
 
 export async function onRequestPatch({ request, env, params }) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env);
   if (denied) return denied;
 
   const id = Number(params.id);

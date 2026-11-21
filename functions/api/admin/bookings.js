@@ -11,7 +11,7 @@ const COLUMNS = `id, created_at, name, phone, email, year, make, model, film, pa
   preferred_date, preferred_time, notes, consent, status, source, internal_notes, updated_at`;
 
 export async function onRequestGet({ request, env }) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env);
   if (denied) return denied;
 
   const url = new URL(request.url);
@@ -41,7 +41,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPost({ request, env }) {
-  const denied = requireAdmin(request, env);
+  const denied = await requireAdmin(request, env);
   if (denied) return denied;
 
   let data;

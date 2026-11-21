@@ -62,6 +62,10 @@
   .btns .wide { grid-column: 1 / -1; }
   .links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px; }
   .invalid { border-color: var(--bad) !important; }
+  main.reporting .toolbar { display:none; }
+  .report-table td, .report-table th { text-align:right; }
+  .report-table td:first-child, .report-table th:first-child { text-align:left; }
+  .report-table tfoot td { font-weight:700; border-bottom:none; }
   @media (max-width: 900px) {
     .wrap { grid-template-columns: 1fr; }
     aside { border-left:none; border-top:1px solid var(--line); }
@@ -72,7 +76,11 @@
 <body>
 <header>
   <div class="brand-text" aria-label="Midnight Tinting bookings">Midnight Tinting<small>Bookings</small></div>
-  <button class="btn primary" id="newBtn">+ New booking</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn" id="reportBtn">Report</button>
+    <a class="btn" href="/api/admin/export" download>Export CSV</a>
+    <button class="btn primary" id="newBtn">+ New booking</button>
+  </div>
 </header>
 
 <div class="wrap">

@@ -25,6 +25,14 @@ export function dateOrNull(v) {
   return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
 }
 
+// One CSV cell. Quotes every value, and neutralises leading characters that spreadsheets
+// would otherwise read as formulas (=, +, -, @), so an entry cannot run code when opened.
+export function csvCell(v) {
+  let s = v === null || v === undefined ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+
 // Today's date in Chicago, as YYYY-MM-DD, offset by a number of days.
 export function chicagoDate(offsetDays = 0) {
   const d = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);

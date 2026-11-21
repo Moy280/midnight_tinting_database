@@ -348,7 +348,64 @@
     }
   }
 
+  // ---- Report (leads, quotes, bookings and losses by source) ----
+
+  let reportDays = '';
+
+  function setReporting(on) {
+    document.querySelector('main').classList.toggle('reporting', on);
+    $('#reportBtn').textContent = on ? 'Back to bookings' : 'Report';
+  }
+
+  function pct(a, b) {
+    return b ? Math.round((a / b) * 100) + '%' : '–';
+  }
+
+  async function showReport() {
+    setReporting(true);
+    $('#list').innerHTML = '<div class="empty">Loading report…</div>';
+    try {
+      const params = new URLSearchParams();
+      if (reportDays) params.set('days', reportDays);
+      const data = await api('/api/admin/report?' + params.toString());
+      const t = { leads: 0, quoted: 0, booked: 0, lost: 0 };
+      const rows = data.rows.map((r) => {
+        t.leads += r.leads; t.quoted += r.quoted; t.booked += r.booked; t.lost += r.lost;
+        return '<tr><td>' + esc(r.source || 'Unknown') + '</td><td>' + r.leads + '</td><td>' + r.quoted +
+          '</td><td>' + r.booked + '</td><td>' + r.lost + '</td><td>' + pct(r.booked, r.leads) + '</td></tr>';
+      }).join('');
+      const body = rows || '<tr><td colspan="6" style="text-align:left;color:var(--muted)">No bookings in this period.</td></tr>';
+      $('#list').innerHTML =
+        '<div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">' +
+          '<label style="margin:0">Show</label>' +
+          '<select id="rdays" style="width:auto">' +
+            '<option value="">All time</option>' +
+            '<option value="30">Last 30 days</option>' +
+            '<option value="90">Last 90 days</option>' +
+          '</select></div>' +
+        '<table class="report-table"><thead><tr><th>Source</th><th>Leads</th><th>Quoted</th>' +
+          '<th>Booked or done</th><th>Lost</th><th>Conversion</th></tr></thead>' +
+        '<tbody>' + body + '</tbody>' +
+        (data.rows.length ? '<tfoot><tr><td>Total</td><td>' + t.leads + '</td><td>' + t.quoted +
+          '</td><td>' + t.booked + '</td><td>' + t.lost + '</td><td>' + pct(t.booked, t.leads) + '</td></tr></tfoot>' : '') +
+        '</table>' +
+        '<div class="hint" style="margin-top:10px">Conversion is booked or done divided by leads from that source.</div>';
+      $('#rdays').value = reportDays;
+      $('#rdays').addEventListener('change', (e) => { reportDays = e.target.value; showReport(); });
+    } catch (err) {
+      $('#list').innerHTML = '<div class="msg err">' + esc(err.message) + '</div>';
+    }
+  }
+
   // ---- Wiring ----
+  $('#reportBtn').addEventListener('click', () => {
+    if (document.querySelector('main').classList.contains('reporting')) {
+      setReporting(false);
+      loadList();
+    } else {
+      showReport();
+    }
+  });
   $('#newBtn').addEventListener('click', () => {
     state.mode = 'new';
     state.selectedId = null;

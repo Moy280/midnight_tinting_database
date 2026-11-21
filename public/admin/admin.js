@@ -11,6 +11,14 @@
   const TODAY = (() => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()))();
   const $ = (sel) => document.querySelector(sel);
 
+  // Shows a 10-digit US number as (708) 677-9815. Anything else is shown as entered.
+  function fmtPhone(raw) {
+    const d = String(raw || '').replace(/\D/g, '');
+    const ten = d.length === 11 && d.startsWith('1') ? d.slice(1) : d;
+    if (ten.length !== 10) return String(raw || '');
+    return '(' + ten.slice(0, 3) + ') ' + ten.slice(3, 6) + '-' + ten.slice(6);
+  }
+
   function esc(v) {
     return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
@@ -79,7 +87,7 @@
     const rows = state.bookings.map((b) =>
       '<tr class="row' + (b.id === state.selectedId ? ' sel' : '') + '" data-id="' + b.id + '">' +
         '<td class="' + (isLate(b) ? 'late' : '') + '">' + esc(fmtReceived(b.created_at)) + '</td>' +
-        '<td><div class="name">' + esc(b.name) + '</div><div class="sub">' + esc(b.phone) + '</div>' +
+        '<td><div class="name">' + esc(b.name) + '</div><div style="white-space:nowrap;color:var(--text);font-size:14px;margin-top:2px">' + esc(fmtPhone(b.phone)) + '</div>' +
           (b.follow_up_date ? '<div class="sub ' + (b.follow_up_date <= TODAY && !['done', 'lost'].includes(b.status) ? 'late' : '') + '">Follow up ' + esc(fmtDate(b.follow_up_date)) + '</div>' : '') +
         '</td>' +
         '<td class="hide-m">' + esc(b.year + ' ' + b.make + ' ' + b.model) + '</td>' +
@@ -142,7 +150,7 @@
       '<div class="links"><a class="btn" href="tel:' + esc(b.phone.replace(/[^\d+]/g, '')) + '">Call</a>' +
       '<a class="btn" href="mailto:' + esc(b.email) + '">Email</a></div>' +
       '<dl>' +
-        '<dt>Phone</dt><dd>' + esc(b.phone) + '</dd>' +
+        '<dt>Phone</dt><dd>' + esc(fmtPhone(b.phone)) + '</dd>' +
         '<dt>Email</dt><dd>' + esc(b.email) + '</dd>' +
         '<dt>Vehicle</dt><dd>' + esc(b.year + ' ' + b.make + ' ' + b.model) + '</dd>' +
         '<dt>Film</dt><dd>' + esc(b.film) + '</dd>' +

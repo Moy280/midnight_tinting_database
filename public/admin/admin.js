@@ -138,8 +138,34 @@
       '<label for="st">Status</label><select id="st">' + statusOptions + '</select>' +
       '<label for="nt">Internal notes</label><textarea id="nt" placeholder="Called, left voicemail, quote sent…">' + esc(b.internal_notes || '') + '</textarea>' +
       '<div class="btns"><button class="btn primary wide" id="saveBtn">Save</button></div>' +
+      '<div class="btns"><button class="btn wide" id="delBtn" style="color:#ff8a80;border-color:#6b2f2f">Delete booking</button></div>' +
       '<div id="detailMsg">' + (msg ? '<div class="msg ' + msg.type + '">' + esc(msg.text) + '</div>' : '') + '</div>';
     $('#saveBtn').addEventListener('click', saveDetail);
+    $('#delBtn').addEventListener('click', deleteBooking);
+  }
+
+  async function deleteBooking() {
+    const b = selectedBooking();
+    if (!b) return;
+    const ok = window.confirm(
+      'Delete the booking for ' + b.name + ' and remove its calendar event?\n\nThis cannot be undone.'
+    );
+    if (!ok) return;
+    const btn = $('#delBtn');
+    btn.disabled = true;
+    try {
+      const data = await api('/api/admin/bookings/' + b.id, { method: 'DELETE' });
+      state.selectedId = null;
+      await loadList();
+      let text = 'Booking deleted.';
+      if (data.calendar === 'deleted') text = 'Booking deleted and its calendar event removed.';
+      if (data.calendar === 'not found') text = 'Booking deleted. No matching calendar event was found, so check the calendar by hand.';
+      renderDetail({ type: data.calendar === 'not found' ? 'err' : 'ok', text });
+    } catch (err) {
+      btn.disabled = false;
+      const el = $('#detailMsg');
+      if (el) el.innerHTML = '<div class="msg err">' + esc(err.message) + '</div>';
+    }
   }
 
   async function saveDetail() {
@@ -202,6 +228,8 @@
       '<label>Status</label><select name="status">' + opts(STATUSES.map((s) => LABELS[s]), 'Booked') + '</select>' +
       '<label>Customer notes</label><textarea name="notes" placeholder="What the caller asked for"></textarea>' +
       '<label>Internal notes</label><textarea name="internal_notes" placeholder="Optional"></textarea>' +
+      '<label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);margin-top:14px">' +
+        '<input type="checkbox" name="send_receipt" checked style="width:auto"> Email the customer their appointment details</label>' +
       '<div class="hint">Consent is recorded as verbal, by phone.</div>' +
       '<div id="formMsg"></div>' +
       '<div class="btns"><button type="button" class="btn" id="cancelNew">Cancel</button>' +
@@ -270,6 +298,7 @@
       status: f.status.value.toLowerCase(),
       notes: f.notes.value.trim(),
       internal_notes: f.internal_notes.value.trim(),
+      send_receipt: f.send_receipt.checked,
     };
     $('#saveNew').disabled = true;
     try {
@@ -278,7 +307,13 @@
       state.selectedId = data.id;
       state.status = '';
       await loadList();
-      renderDetail({ type: 'ok', text: 'Booking added and held on the calendar.' });
+      let text = 'Booking added and held on the calendar.';
+      if (payload.send_receipt) {
+        text = data.receipt_sent
+          ? 'Booking added. Appointment details emailed to the customer.'
+          : 'Booking added, but the customer email could not be sent. Tell them the details by phone.';
+      }
+      renderDetail({ type: data.receipt_sent === false && payload.send_receipt ? 'err' : 'ok', text });
     } catch (err) {
       $('#saveNew').disabled = false;
       setFormMsg('err', err.message);

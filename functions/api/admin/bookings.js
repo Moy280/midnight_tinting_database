@@ -7,6 +7,52 @@ import {
 import { validateBooking } from '../booking.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+  'August', 'September', 'October', 'November', 'December'];
+
+// "2026-12-02" -> "December 2, 2026"
+function formatDate(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return iso;
+  return MONTHS[Number(m[2]) - 1] + ' ' + Number(m[3]) + ', ' + m[1];
+}
+
+// Emails the customer their appointment details, so they can refer back to them.
+// Returns true if Resend accepted the email.
+async function sendPhoneReceipt(env, row, startLabel) {
+  if (!env.RESEND_API_KEY) return false;
+  const from = env.FROM_EMAIL || 'Midnight Tinting <bookings@midnight-tint.com>';
+  const lines = [
+    'Hi ' + row.name.split(' ')[0] + ',',
+    '',
+    'Thanks for booking with Midnight Tinting. Here are your appointment details:',
+    '',
+    'Date: ' + formatDate(row.preferred_date),
+    'Start time: ' + startLabel + ' (about 3 hours)',
+    'Vehicle: ' + row.year + ' ' + row.make + ' ' + row.model,
+    'Film: ' + row.film,
+    'Package: ' + row.package,
+    '',
+    'We come to you. Please have the vehicle ready and parked in a spot where we can work.',
+    '',
+    'Need to change the time? Call (708) 677-9815 or reply to this email.',
+    '',
+    'Midnight Tinting',
+  ];
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from,
+      to: [row.email],
+      reply_to: env.NOTIFY_TO || 'info@midnight-tint.com',
+      subject: 'Your Midnight Tinting appointment: ' + formatDate(row.preferred_date) + ' ' + startLabel,
+      text: lines.join('\n'),
+    }),
+  });
+  if (!res.ok) console.error('phone receipt failed', res.status, await res.text());
+  return res.ok;
+}
 const COLUMNS = `id, created_at, name, phone, email, year, make, model, film, package,
   preferred_date, preferred_time, notes, consent, status, source, internal_notes, updated_at`;
 
@@ -129,7 +175,15 @@ export async function onRequestPost({ request, env }) {
       row.film, row.package, row.preferred_date, row.preferred_time, row.notes,
       status, source, savedInternal
     ).run();
-    return json({ ok: true, id: res.meta && res.meta.last_row_id });
+    let receiptSent = false;
+    if (data.send_receipt === true) {
+      try {
+        receiptSent = await sendPhoneReceipt(env, row, row.preferred_time);
+      } catch (err) {
+        console.error('phone receipt error', err);
+      }
+    }
+    return json({ ok: true, id: res.meta && res.meta.last_row_id, receipt_sent: receiptSent });
   } catch (err) {
     // The calendar event exists but the row did not save. Say so, so it can be fixed by hand.
     console.error('admin booking insert failed', err);

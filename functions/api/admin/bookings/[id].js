@@ -1,5 +1,5 @@
 // Admin API: update one booking's status or internal notes.
-import { json, clean, requireAdmin, STATUSES } from '../../../lib/admin.js';
+import { json, clean, requireAdmin, STATUSES, dateOrNull } from '../../../lib/admin.js';
 import { getAccessToken, parseTime, zonedToDate } from '../../../lib/google.js';
 
 export async function onRequestPatch({ request, env, params }) {
@@ -26,6 +26,14 @@ export async function onRequestPatch({ request, env, params }) {
   if (data.internal_notes !== undefined) {
     sets.push('internal_notes = ?');
     binds.push(clean(data.internal_notes, 2000));
+  }
+  if (data.follow_up_date !== undefined) {
+    // Empty clears the follow-up date. Anything else must be a YYYY-MM-DD date.
+    const cleared = data.follow_up_date === '' || data.follow_up_date === null;
+    const value = cleared ? null : dateOrNull(data.follow_up_date);
+    if (!cleared && !value) return json({ ok: false, error: 'Please choose a valid follow-up date.' }, 400);
+    sets.push('follow_up_date = ?');
+    binds.push(value);
   }
   if (!sets.length) return json({ ok: false, error: 'Nothing to update.' }, 400);
 

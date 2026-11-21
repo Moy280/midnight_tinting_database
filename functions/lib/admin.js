@@ -19,6 +19,20 @@ export function clean(v, max) {
   return String(v ?? '').trim().slice(0, max);
 }
 
+// Returns a YYYY-MM-DD string or null.
+export function dateOrNull(v) {
+  const s = clean(v, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+// Today's date in Chicago, as YYYY-MM-DD, offset by a number of days.
+export function chicagoDate(offsetDays = 0) {
+  const d = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Chicago', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
+}
+
 const certCache = { keys: null, fetchedAt: 0, team: '' };
 
 function b64urlToBytes(s) {

@@ -1,0 +1,11 @@
+name = "midnight-reminders"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+# Runs every day at 17:00 UTC (noon in Chicago during daylight time, 11 AM in winter).
+[triggers]
+crons = ["0 17 * * *"]
+
+# Set these as secrets/variables on the Worker, not in this file:
+#   SITE_URL         = https://midnight-tint.com
+#   REMINDER_SECRET  = the same value as the site's REMINDER_SECRET variable

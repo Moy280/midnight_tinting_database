@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   status TEXT NOT NULL DEFAULT 'new',
   source TEXT NOT NULL DEFAULT 'Website',
   internal_notes TEXT,
-  updated_at TEXT
+  updated_at TEXT,
+  follow_up_date TEXT,
+  reminder_sent_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status, created_at);

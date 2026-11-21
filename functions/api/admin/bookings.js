@@ -1,5 +1,5 @@
 // Admin API: list bookings (GET) and add a booking by hand (POST).
-import { json, clean, requireAdmin, STATUSES, SOURCES } from '../../lib/admin.js';
+import { json, clean, requireAdmin, STATUSES, SOURCES, dateOrNull, chicagoDate } from '../../lib/admin.js';
 import {
   APPOINTMENT_MINUTES, createEvent, getAccessToken, getBusy, isSunday, overlaps,
   parseTime, zonedToDate,
@@ -54,7 +54,8 @@ async function sendPhoneReceipt(env, row, startLabel) {
   return res.ok;
 }
 const COLUMNS = `id, created_at, name, phone, email, year, make, model, film, package,
-  preferred_date, preferred_time, notes, consent, status, source, internal_notes, updated_at`;
+  preferred_date, preferred_time, notes, consent, status, source, internal_notes, updated_at,
+  follow_up_date, reminder_sent_at`;
 
 export async function onRequestGet({ request, env }) {
   const denied = await requireAdmin(request, env);
@@ -64,9 +65,14 @@ export async function onRequestGet({ request, env }) {
   const status = url.searchParams.get('status') || '';
   const q = clean(url.searchParams.get('q'), 100);
 
+  const today = chicagoDate(0);
   const where = [];
   const binds = [];
-  if (STATUSES.includes(status)) {
+  if (url.searchParams.get('due') === '1') {
+    // Follow-ups that are due today or overdue, excluding finished and lost bookings.
+    where.push("follow_up_date IS NOT NULL AND follow_up_date <= ? AND status NOT IN ('done', 'lost')");
+    binds.push(today);
+  } else if (STATUSES.includes(status)) {
     where.push('status = ?');
     binds.push(status);
   }
@@ -82,6 +88,10 @@ export async function onRequestGet({ request, env }) {
   const counts = await env.DB.prepare('SELECT status, COUNT(*) AS n FROM bookings GROUP BY status').all();
   const byStatus = Object.fromEntries(STATUSES.map((s) => [s, 0]));
   for (const r of counts.results || []) byStatus[r.status] = r.n;
+  const dueRow = await env.DB.prepare(
+    "SELECT COUNT(*) AS n FROM bookings WHERE follow_up_date IS NOT NULL AND follow_up_date <= ? AND status NOT IN ('done', 'lost')"
+  ).bind(today).first();
+  byStatus.due = dueRow ? dueRow.n : 0;
 
   return json({ ok: true, bookings: rows.results || [], counts: byStatus });
 }
@@ -113,6 +123,7 @@ export async function onRequestPost({ request, env }) {
   const source = SOURCES.includes(data.source) ? data.source : 'Phone';
   const status = STATUSES.includes(data.status) ? data.status : 'booked';
   const internalNotes = clean(data.internal_notes, 2000);
+  const followUp = dateOrNull(data.follow_up_date);
 
   // Email stays required, as it is for website bookings.
   const required = ['name', 'phone', 'email', 'year', 'make', 'model', 'film', 'package', 'preferred_date', 'preferred_time'];
@@ -168,12 +179,12 @@ export async function onRequestPost({ request, env }) {
     const res = await env.DB.prepare(
       `INSERT INTO bookings
         (name, phone, email, year, make, model, film, package, preferred_date, preferred_time,
-         notes, consent, status, source, internal_notes, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, datetime('now'))`
+         notes, consent, status, source, internal_notes, follow_up_date, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, datetime('now'))`
     ).bind(
       row.name, row.phone, row.email, row.year, row.make, row.model,
       row.film, row.package, row.preferred_date, row.preferred_time, row.notes,
-      status, source, savedInternal
+      status, source, savedInternal, followUp
     ).run();
     let receiptSent = false;
     if (data.send_receipt === true) {

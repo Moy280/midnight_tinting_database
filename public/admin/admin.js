@@ -7,7 +7,8 @@
   const SOURCES = ['Phone', 'Website', 'Referral', 'Other'];
   const TZ = 'America/Chicago';
 
-  const state = { status: '', q: '', bookings: [], counts: {}, selectedId: null, mode: 'view' };
+  const state = { status: '', due: false, q: '', bookings: [], counts: {}, selectedId: null, mode: 'view' };
+  const TODAY = (() => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()))();
   const $ = (sel) => document.querySelector(sel);
 
   function esc(v) {
@@ -46,16 +47,27 @@
   }
 
   function renderChips() {
-    const total = Object.values(state.counts).reduce((a, n) => a + n, 0);
+    const total = STATUSES.reduce((a, s) => a + (state.counts[s] || 0), 0);
     const chips = [{ key: '', label: 'All', n: total }].concat(
-      STATUSES.map((s) => ({ key: s, label: LABELS[s], n: state.counts[s] || 0 }))
+      STATUSES.map((s) => ({ key: s, label: LABELS[s], n: state.counts[s] || 0 })),
+      [{ key: 'due', label: 'Follow up', n: state.counts.due || 0 }]
     );
+    const isOn = (c) => (c.key === 'due' ? state.due : !state.due && state.status === c.key);
     $('#chips').innerHTML = chips.map((c) =>
-      '<button class="chip' + (state.status === c.key ? ' on' : '') + '" data-status="' + c.key + '">' +
+      '<button class="chip' + (isOn(c) ? ' on' : '') + '" data-key="' + c.key + '">' +
       esc(c.label) + '<b>' + c.n + '</b></button>'
     ).join('');
     document.querySelectorAll('#chips .chip').forEach((btn) => {
-      btn.addEventListener('click', () => { state.status = btn.dataset.status; loadList(); });
+      btn.addEventListener('click', () => {
+        if (btn.dataset.key === 'due') {
+          state.due = true;
+          state.status = '';
+        } else {
+          state.due = false;
+          state.status = btn.dataset.key;
+        }
+        loadList();
+      });
     });
   }
 
@@ -67,7 +79,9 @@
     const rows = state.bookings.map((b) =>
       '<tr class="row' + (b.id === state.selectedId ? ' sel' : '') + '" data-id="' + b.id + '">' +
         '<td class="' + (isLate(b) ? 'late' : '') + '">' + esc(fmtReceived(b.created_at)) + '</td>' +
-        '<td><div class="name">' + esc(b.name) + '</div><div class="sub">' + esc(b.phone) + '</div></td>' +
+        '<td><div class="name">' + esc(b.name) + '</div><div class="sub">' + esc(b.phone) + '</div>' +
+          (b.follow_up_date ? '<div class="sub ' + (b.follow_up_date <= TODAY && !['done', 'lost'].includes(b.status) ? 'late' : '') + '">Follow up ' + esc(fmtDate(b.follow_up_date)) + '</div>' : '') +
+        '</td>' +
         '<td class="hide-m">' + esc(b.year + ' ' + b.make + ' ' + b.model) + '</td>' +
         '<td class="hide-m">' + esc(b.film) + '<div class="sub">' + esc(b.package) + '</div></td>' +
         '<td class="hide-m">' + esc(fmtDate(b.preferred_date)) + ' · ' + esc(b.preferred_time || '') + '</td>' +
@@ -91,7 +105,8 @@
 
   async function loadList() {
     const params = new URLSearchParams();
-    if (state.status) params.set('status', state.status);
+    if (state.due) params.set('due', '1');
+    else if (state.status) params.set('status', state.status);
     if (state.q) params.set('q', state.q);
     try {
       const data = await api('/api/admin/bookings?' + params.toString());
@@ -135,6 +150,13 @@
         '<dt>Requested</dt><dd>' + esc(fmtDate(b.preferred_date)) + ' · ' + esc(b.preferred_time || '') + '</dd>' +
         '<dt>Customer notes</dt><dd>' + esc(b.notes || 'None') + '</dd>' +
       '</dl>' +
+      (b.status === 'booked'
+        ? '<div class="meta">' + (b.reminder_sent_at
+            ? 'Reminder emailed ' + esc(fmtReceived(b.reminder_sent_at))
+            : 'Reminder email goes out the day before the appointment') + '</div>'
+        : '') +
+      '<label for="fu">Follow up by</label><input id="fu" type="date" value="' + esc(b.follow_up_date || '') + '">' +
+      '<div class="hint">Shows under "Follow up" on the list until it is done or lost. Clear it to remove.</div>' +
       '<label for="st">Status</label><select id="st">' + statusOptions + '</select>' +
       '<label for="nt">Internal notes</label><textarea id="nt" placeholder="Called, left voicemail, quote sent…">' + esc(b.internal_notes || '') + '</textarea>' +
       '<div class="btns"><button class="btn primary wide" id="saveBtn">Save</button></div>' +
@@ -176,7 +198,11 @@
     try {
       await api('/api/admin/bookings/' + b.id, {
         method: 'PATCH',
-        body: JSON.stringify({ status: $('#st').value, internal_notes: $('#nt').value }),
+        body: JSON.stringify({
+          status: $('#st').value,
+          internal_notes: $('#nt').value,
+          follow_up_date: $('#fu').value,
+        }),
       });
       await loadList();
       renderDetail({ type: 'ok', text: 'Saved.' });
@@ -224,6 +250,7 @@
         '<div class="hint" id="timeHint">Only open times appear. They come from the calendar.</div></div>' +
       '</div>' +
       '<div class="section">Details</div>' +
+      '<label>Follow up by (optional)</label><input name="follow_up_date" type="date">' +
       '<label>Source</label><select name="source">' + opts(SOURCES, 'Phone') + '</select>' +
       '<label>Status</label><select name="status">' + opts(STATUSES.map((s) => LABELS[s]), 'Booked') + '</select>' +
       '<label>Customer notes</label><textarea name="notes" placeholder="What the caller asked for"></textarea>' +
@@ -299,6 +326,7 @@
       notes: f.notes.value.trim(),
       internal_notes: f.internal_notes.value.trim(),
       send_receipt: f.send_receipt.checked,
+      follow_up_date: f.follow_up_date.value,
     };
     $('#saveNew').disabled = true;
     try {

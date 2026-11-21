@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Bookings | Midnight Tinting admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@400;600;700&display=swap">
 <style>
   :root { --bg:#0b0f1a; --panel:#111827; --line:#1f2a3d; --text:#e8eef9; --muted:#8b9ab5; --blue:#5fb0ff; --blue-2:#2f8cff; --bad:#ff8a80; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; font-size:15px; }
   header { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:14px 20px; border-bottom:1px solid var(--line); background:#0d1322; position:sticky; top:0; z-index:2; }
-  header h1 { margin:0; font-size:19px; letter-spacing:.02em; }
-  header h1 span { color:var(--blue); }
+  .brand-text { font-family: "Anton", sans-serif; font-size: 22px; text-transform: uppercase; line-height: 1; color: var(--text); font-weight: 400; }
+  .brand-text small { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 10px; letter-spacing: .4em; color: var(--blue); margin-top: 4px; }
   .wrap { display:grid; grid-template-columns: minmax(0,1fr) 380px; min-height: calc(100vh - 62px); }
   main { padding:16px 20px; min-width:0; }
   .toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
@@ -68,7 +71,7 @@
 </head>
 <body>
 <header>
-  <h1>Midnight <span>Tinting</span> · Bookings</h1>
+  <div class="brand-text" aria-label="Midnight Tinting bookings">Midnight Tinting<small>Bookings</small></div>
   <button class="btn primary" id="newBtn">+ New booking</button>
 </header>
 

@@ -2,7 +2,7 @@
 (function () {
   const STATUSES = ['new', 'contacted', 'quoted', 'booked', 'done', 'lost'];
   const LABELS = { new: 'New', contacted: 'Contacted', quoted: 'Quoted', booked: 'Booked', done: 'Done', lost: 'Lost' };
-  const FILMS = ['Uviron PureMax Carbon', 'GeoShield C2 Ceramic', 'Not sure yet'];
+  const FILMS = ['Uviron PureMax Carbon', 'Hitek Ceramic Black', 'Not sure yet'];
   const PACKAGES = ['Full Vehicle (No Front Windshield)', 'Front only', 'Custom'];
   const SOURCES = ['Phone', 'Website', 'Referral', 'Other'];
   const TZ = 'America/Chicago';

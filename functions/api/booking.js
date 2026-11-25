@@ -136,7 +136,7 @@ async function createCalendarEvent(env, token, row, start, end) {
 }
 
 
-const FILMS = ['Uviron PureMax Carbon', 'GeoShield C2 Ceramic'];
+const FILMS = ['Uviron PureMax Carbon', 'Hitek Ceramic Black'];
 const PACKAGES = ['Full Vehicle (No Front Windshield)', 'Front only', 'Custom'];
 
 // Returns an error message for the first bad field, or null if everything looks valid.

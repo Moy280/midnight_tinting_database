@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hitek Carbon IR | Midnight Tinting</title>
+  <meta name="description" content="Hitek Carbon IR window film from Midnight Tinting in Chicagoland. Specs and how to book.">
+  <meta name="theme-color" content="#05070d">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-GV2LDCNRG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-GV2LDCNRG');
+  </script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="site-header">
+  <div class="wrap nav-wrap">
+    <a href="index.html" class="brand" aria-label="Midnight Tinting home">
+      <img src="assets/logo-400.webp" alt="Midnight Tinting logo" width="52" height="52">
+      <span class="brand-text">Midnight<small>Tinting</small></span>
+    </a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <nav id="nav" class="nav" aria-label="Main">
+      <div class="nav-dropdown">
+        <a href="index.html#services" class="nav-dd-toggle" aria-haspopup="true">Vehicle Tinting</a>
+        <div class="nav-dd-menu" role="menu">
+          <a href="uviron-puremax-carbon.html" role="menuitem">Carbon: Uviron PureMax</a>
+          <a href="hitek-carbon-ir.html" role="menuitem">Carbon IR: Hitek</a>
+          <a href="hitek-ceramic-black.html" role="menuitem">Ceramic: Hitek Black</a>
+        </div>
+      </div>
+      <a href="index.html#quote">Get a quote</a>
+      <a href="index.html#gallery">Gallery</a>
+      <a href="index.html#reviews">Reviews</a>
+      <a href="index.html#about">About</a>
+      <a href="booking.html" class="btn btn-small">Book appointment</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="product-hero">
+    <div class="wrap">
+      <p class="crumbs"><a href="index.html#services">Vehicle Window Tinting</a> &rsaquo; Carbon</p>
+      <p class="eyebrow">Carbon</p>
+      <h1>Hitek Carbon IR</h1>
+      <p class="lead">A carbon nanoparticle film for solid heat and glare reduction, with a neutral finish and no electronic interference.</p>
+      <p class="price">Starting at <strong>$200</strong> Full Vehicle (No Front Windshield)</p>
+      <div class="cta-row">
+        <a href="booking.html" class="btn btn-primary">Book appointment</a>
+        <a href="tel:+17086779815" class="btn btn-ghost">Call (708) 677-9815</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap product-about">
+      <p class="eyebrow">About This Film</p>
+      <h2>Hitek Carbon IR Offers:</h2>
+      <ul class="offers"><li>32% to 61% TSER</li><li>35% to 62% IR rejection</li><li>99% UV rejection</li><li>2-ply, 1.5 mil thickness</li><li>Carbon nanoparticle technology</li><li>Designed without electronic interference</li><li>Lifetime warranty</li></ul>
+      <p class="spec-note">TSER is total solar energy rejected. IR rejection of 62% is measured at 780 to 2500 nm on the 5% shade. Values come from each manufacturer's published data. Results vary with the vehicle's glass.</p>
+      <a href="booking.html" class="btn btn-primary">Book appointment</a>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="eyebrow">Upgrade</p>
+        <h2>Want to Upgrade?</h2>
+        <p class="section-sub">Move up to our top-rated film for higher heat rejection.</p>
+      </header>
+      <a class="other-card" href="hitek-ceramic-black.html">
+        <span class="film-tag">Ceramic</span>
+        <h3>Hitek Ceramic Black</h3>
+        <p>Ceramic window film for strong heat and UV rejection, in shades from 5% to 70% visible light.</p>
+        <span class="card-link">View film details &rarr;</span>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap copy">
+    <p>&copy; 2026 Midnight Tinting. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var btn = document.querySelector('.nav-toggle');
+    var nav = document.getElementById('nav');
+    btn.addEventListener('click', function () {
+      var open = nav.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    });
+    nav.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A' && !e.target.classList.contains('nav-dd-toggle')) {
+        nav.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  })();
+</script>
+  <script src="https://cms.hitekcrm.com/assets/widget/widget.js?widget_id=4e5c8261-d1c2-4c83-b5ab-3e3482063b8d&dealer_id=9e6d34cc-f25a-4bc9-82a0-b8546b4dfd9c"></script>
+</body>
+</html>
